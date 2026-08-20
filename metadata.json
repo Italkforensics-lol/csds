@@ -1,0 +1,8 @@
+{
+  "name": "BCA Cyber Security & Data Science Academic Dashboard",
+  "description": "Departmental academic portal for BCA Cyber Security with Data Science featuring AI syllabus parsing, quiz & study plan generation, intelligent note summarizer, assignment management, and real-time student engagement tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
