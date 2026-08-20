@@ -33,6 +33,7 @@ interface DashboardOverviewProps {
   onNavigate: (tab: string) => void;
   role: UserRole;
   onOpenAITutor: () => void;
+  activeFaculty?: any;
 }
 
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
@@ -44,12 +45,16 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   onNavigate,
   role,
   onOpenAITutor,
+  activeFaculty,
 }) => {
-  const totalStudents = students.length || 64;
+  const totalStudents = students.length || 32;
   const avgEngagement = Math.round(
     students.reduce((acc, s) => acc + s.engagementScore, 0) / (students.length || 1)
   );
   const totalSubmissions = assignments.reduce((acc, a) => acc + a.submissions.length, 0);
+  const pendingGradingCount = assignments.reduce((acc, a) => 
+    acc + a.submissions.filter(s => s.status !== 'Graded').length, 0
+  );
   const recentSubmissionsList = assignments.flatMap(a => a.submissions).slice(0, 4);
 
   return (
@@ -59,20 +64,17 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold font-mono uppercase tracking-wider ${
-              role === 'faculty' ? 'bg-sky-100 text-sky-800 border border-sky-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-            }`}>
-              {role === 'faculty' ? 'Faculty Command Center' : 'Student Academic Portal'}
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono uppercase tracking-wider bg-sky-100 text-sky-800 border border-sky-200 flex items-center gap-1.5">
+              <Shield className="w-3 h-3 text-sky-700" />
+              <span>Faculty Academic Command Center</span>
             </span>
             <span className="text-xs text-slate-400">&bull; BCA Cyber Security &amp; Data Science</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            {role === 'faculty' ? 'Department Academic Center' : 'Welcome back, Sruthi'}
+            Department Academic Center
           </h2>
           <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
-            {role === 'faculty'
-              ? `Semester 1 Cohort (32 Students) &bull; ${totalSubmissions} active submissions recorded.`
-              : 'Access your coursework, submit PDF/DOC assignments, take timed quizzes, download syllabi, summarize lecture notes, and join Cipher X club.'}
+            Semester 1 Cohort ({totalStudents} Students enrolled) &bull; {totalSubmissions} active submissions ({pendingGradingCount} pending evaluation).
           </p>
         </div>
 
@@ -85,142 +87,17 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <Sparkles className="w-3.5 h-3.5 text-sky-600" />
             <span>Ask AI Tutor</span>
           </button>
-          {role === 'faculty' ? (
-            <button
-              id="btn-header-new-post"
-              onClick={() => onNavigate('syllabus-ai')}
-              className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs sm:text-sm font-medium shadow-sm shadow-sky-200 transition"
-            >
-              New AI Syllabus &amp; Quiz +
-            </button>
-          ) : (
-            <button
-              id="btn-header-take-quiz"
-              onClick={() => onNavigate('quizzes')}
-              className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm shadow-sky-200 transition flex items-center gap-1.5"
-            >
-              <span>Take Quiz &rarr;</span>
-            </button>
-          )}
+          
+          <button
+            id="btn-header-new-post"
+            onClick={() => onNavigate('syllabus-ai')}
+            className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs sm:text-sm font-medium shadow-sm shadow-sky-200 transition flex items-center gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>New AI Syllabus &amp; Quiz +</span>
+          </button>
         </div>
       </header>
-
-      {/* Student 5 Core Actions Banner (when student mode) */}
-      {role === 'student' && (
-        <div className="bg-gradient-to-r from-sky-900 via-[#0f172a] to-slate-900 text-white rounded-3xl p-6 shadow-md border border-slate-800 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
-            <div>
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-sky-400" />
-                <span>Your Student Study &amp; Submission Hub</span>
-              </h3>
-              <p className="text-xs text-slate-300">
-                Explore your permitted capabilities for coursework, testing, downloads, and club membership.
-              </p>
-            </div>
-            <span className="text-[11px] font-mono text-sky-300 bg-sky-500/20 px-2.5 py-1 rounded-lg border border-sky-500/30">
-              Student Role: Limited Access
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
-            {/* 1. Upload Assignments */}
-            <div
-              onClick={() => onNavigate('assignments')}
-              className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700/80 hover:bg-slate-700/80 hover:border-sky-400 transition cursor-pointer flex flex-col justify-between group space-y-2"
-            >
-              <div className="flex items-center justify-between">
-                <div className="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-sm">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <span className="text-[10px] font-mono font-bold text-sky-300 bg-sky-500/10 px-2 py-0.5 rounded">
-                  01
-                </span>
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-white group-hover:text-sky-300 transition">Upload Assignments</h4>
-                <p className="text-[10px] text-slate-400 mt-0.5">Submit lab reports in PDF / DOC format &amp; view grades.</p>
-              </div>
-            </div>
-
-            {/* 2. Do Quizzes */}
-            <div
-              onClick={() => onNavigate('quizzes')}
-              className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700/80 hover:bg-slate-700/80 hover:border-emerald-400 transition cursor-pointer flex flex-col justify-between group space-y-2"
-            >
-              <div className="flex items-center justify-between">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">
-                  <HelpCircle className="w-5 h-5" />
-                </div>
-                <span className="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded">
-                  02
-                </span>
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-white group-hover:text-emerald-300 transition">Do Quizzes</h4>
-                <p className="text-[10px] text-slate-400 mt-0.5">Timed tests, instant grading, and review explanations.</p>
-              </div>
-            </div>
-
-            {/* 3. Download Study Materials */}
-            <div
-              onClick={() => onNavigate('study-materials')}
-              className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700/80 hover:bg-slate-700/80 hover:border-indigo-400 transition cursor-pointer flex flex-col justify-between group space-y-2"
-            >
-              <div className="flex items-center justify-between">
-                <div className="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">
-                  <Download className="w-5 h-5" />
-                </div>
-                <span className="text-[10px] font-mono font-bold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded">
-                  03
-                </span>
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-white group-hover:text-indigo-300 transition">Download Materials</h4>
-                <p className="text-[10px] text-slate-400 mt-0.5">Download official course syllabi and lab manual PDFs.</p>
-              </div>
-            </div>
-
-            {/* 4. Key Concept Summarizer */}
-            <div
-              onClick={() => onNavigate('notes')}
-              className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700/80 hover:bg-slate-700/80 hover:border-amber-400 transition cursor-pointer flex flex-col justify-between group space-y-2"
-            >
-              <div className="flex items-center justify-between">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
-                  <BookMarked className="w-5 h-5" />
-                </div>
-                <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded">
-                  04
-                </span>
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-white group-hover:text-amber-300 transition">Concept Summarizer</h4>
-                <p className="text-[10px] text-slate-400 mt-0.5">AI lecture summaries, key terms, flashcards &amp; tutor.</p>
-              </div>
-            </div>
-
-            {/* 5. The Anonymous Lab & Club */}
-            <div
-              onClick={() => onNavigate('anonymous-lab')}
-              className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700/80 hover:bg-slate-700/80 hover:border-pink-400 transition cursor-pointer flex flex-col justify-between group space-y-2"
-            >
-              <div className="flex items-center justify-between">
-                <div className="w-9 h-9 rounded-xl bg-pink-500/20 text-pink-400 flex items-center justify-center font-bold text-sm">
-                  <Terminal className="w-5 h-5" />
-                </div>
-                <span className="text-[10px] font-mono font-bold text-pink-300 bg-pink-500/10 px-2 py-0.5 rounded">
-                  05
-                </span>
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-white group-hover:text-pink-300 transition">Apply &amp; Access Club</h4>
-                <p className="text-[10px] text-slate-400 mt-0.5">Cipher X club content, CTF war games, and apply to wings.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 4 Metric Cards in Clean White */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

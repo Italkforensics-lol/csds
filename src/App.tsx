@@ -32,7 +32,9 @@ import { AIConceptTutorModal } from './components/AIConceptTutorModal';
 import { FacultyLoginModal } from './components/FacultyLoginModal';
 import { AnonymousLabSection } from './components/AnonymousLabSection';
 import { StudyMaterialsHub } from './components/StudyMaterialsHub';
+import { StudentDashboard } from './components/StudentDashboard';
 import { ClubApplication } from './types';
+import { Lock } from 'lucide-react';
 
 export default function App() {
   // Faculty Authentication & Role State
@@ -211,6 +213,9 @@ export default function App() {
       setRole('faculty');
     } else {
       setRole('student');
+      if (currentTab === 'syllabus-ai' || currentTab === 'engagement') {
+        setCurrentTab('overview');
+      }
     }
   };
 
@@ -228,7 +233,7 @@ export default function App() {
     }
     setActiveFaculty(null);
     setRole('student');
-    if (currentTab === 'syllabus-ai') {
+    if (currentTab === 'syllabus-ai' || currentTab === 'engagement') {
       setCurrentTab('overview');
     }
   };
@@ -382,25 +387,66 @@ export default function App() {
         {/* Dynamic Main View */}
         <main className="flex-1 min-w-0">
           {currentTab === 'overview' && (
-            <DashboardOverview
-              courses={courses}
-              quizzes={quizzes}
-              assignments={assignments}
-              notes={notes}
-              students={students}
-              role={role}
-              onNavigate={(tab) => setCurrentTab(tab)}
-              onOpenAITutor={() => setIsAITutorOpen(true)}
-            />
+            role === 'student' ? (
+              <StudentDashboard
+                courses={courses}
+                assignments={assignments}
+                quizzes={quizzes}
+                notes={notes}
+                clubApplications={clubApplications}
+                onNavigate={(tab) => setCurrentTab(tab)}
+                onOpenAITutor={() => setIsAITutorOpen(true)}
+              />
+            ) : (
+              <DashboardOverview
+                courses={courses}
+                quizzes={quizzes}
+                assignments={assignments}
+                notes={notes}
+                students={students}
+                role={role}
+                activeFaculty={activeFaculty}
+                onNavigate={(tab) => setCurrentTab(tab)}
+                onOpenAITutor={() => setIsAITutorOpen(true)}
+              />
+            )
           )}
 
           {currentTab === 'syllabus-ai' && (
-            <SyllabusAIGenerator
-              courses={courses}
-              onSaveGeneratedQuiz={handleSaveGeneratedQuiz}
-              onSaveGeneratedPlan={handleSaveGeneratedPlan}
-              activeStudyPlans={studyPlans}
-            />
+            role === 'faculty' ? (
+              <SyllabusAIGenerator
+                courses={courses}
+                onSaveGeneratedQuiz={handleSaveGeneratedQuiz}
+                onSaveGeneratedPlan={handleSaveGeneratedPlan}
+                activeStudyPlans={studyPlans}
+              />
+            ) : (
+              <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-4 shadow-sm max-w-xl mx-auto my-12 animate-fade-in">
+                <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-100">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-slate-900">Faculty Authorization Required</h3>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                    The Syllabus &amp; AI Studio is an administrative curriculum and quiz authoring tool reserved for verified department faculty.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <button
+                    onClick={() => setCurrentTab('overview')}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition"
+                  >
+                    Return to Student Dashboard
+                  </button>
+                  <button
+                    onClick={() => setIsFacultyLoginOpen(true)}
+                    className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-xs transition"
+                  >
+                    Faculty Login
+                  </button>
+                </div>
+              </div>
+            )
           )}
 
           {currentTab === 'notes' && (
@@ -446,15 +492,43 @@ export default function App() {
           )}
 
           {currentTab === 'engagement' && (
-            <EngagementTracker
-              students={students}
-              role={role}
-              onAddStudent={handleAddStudent}
-              onUpdateStudent={handleUpdateStudent}
-              onDeleteStudent={handleDeleteStudent}
-              onBulkImportStudents={handleBulkImportStudents}
-              onResetDefaultStudents={handleResetDefaultStudents}
-            />
+            role === 'faculty' ? (
+              <EngagementTracker
+                students={students}
+                role={role}
+                onAddStudent={handleAddStudent}
+                onUpdateStudent={handleUpdateStudent}
+                onDeleteStudent={handleDeleteStudent}
+                onBulkImportStudents={handleBulkImportStudents}
+                onResetDefaultStudents={handleResetDefaultStudents}
+              />
+            ) : (
+              <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-4 shadow-sm max-w-xl mx-auto my-12 animate-fade-in">
+                <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-100">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-slate-900">Faculty Authorization Required</h3>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                    The Student Analytics &amp; Department Roster is reserved for faculty evaluation, attendance monitoring, and performance reviews.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <button
+                    onClick={() => setCurrentTab('overview')}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition"
+                  >
+                    Return to Student Dashboard
+                  </button>
+                  <button
+                    onClick={() => setIsFacultyLoginOpen(true)}
+                    className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-xs transition"
+                  >
+                    Faculty Login
+                  </button>
+                </div>
+              </div>
+            )
           )}
 
           {currentTab === 'anonymous-lab' && (
